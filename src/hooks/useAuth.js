@@ -7,6 +7,8 @@ import {
   onAuthStateChanged
 } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 export function useAuth() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -34,6 +36,16 @@ export function useAuth() {
 
   const logOut = () => {
     return signOut(auth);
+  };
+
+  const loadUserData = async (userId) => {
+    const docRef = doc(db, "users", userId);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? docSnap.data() : null;
+  };
+  
+  const saveUserData = async (userId, data) => {
+    await setDoc(doc(db, "users", userId), data);
   };
 
   return {

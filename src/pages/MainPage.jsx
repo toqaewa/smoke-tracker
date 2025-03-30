@@ -1,54 +1,68 @@
-import './MainPage.css';
-import Achievements from '../components/Achievements/Achievements';
-import Calendar from '../components/Calendar/Calendar';
-import Counter from '../components/Counter/Counter';
-import LimitControl from '../components/LimitControl/LimitControl';
-import LogoutButton from '../components/Auth/LogoutButton';
+import { useAuth } from '../hooks/useAuth';
 import { useSmokeTracker } from '../hooks/useSmokeTracker';
+import Counter from '../components/Counter/Counter';
+import Calendar from '../components/Calendar/Calendar';
+import Achievements from '../components/Achievements/Achievements';
+import LogoutButton from '../components/Auth/LogoutButton.jsx'
+import './MainPage.css';
 
 export default function MainPage() {
-    const {
-    dailyLimit,
+  const { currentUser } = useAuth();
+  const {
     count,
+    dailyLimit,
     history,
     achievements,
+    loading,
     addCigarette,
     removeCigarette,
-    setNewLimit,
+    updateSettings,
     getSavedCigarettes
-  } = useSmokeTracker();
+  } = useSmokeTracker(currentUser?.uid);
+
+  // Состояние загрузки
+  if (loading) {
+    return <div className="loading">Загрузка данных...</div>;
+  }
+
+  // Проверка авторизации
+  if (!currentUser) {
+    return <div className="auth-warning">Пожалуйста, войдите в систему</div>;
+  }
 
   return (
     <div className="main-page">
-      <header className="main-header">
-        <h1>🚬 Smoke Tracker</h1>
-        <p>Следи за привычкой и уменьшай потребление</p>
-      </header>
+      <h1 className="app-title">🚬 Smoke Tracker</h1>
+      
+      <div className="content-container">
+        <div className="limit-control">
+          <label>
+            Дневной лимит:
+            <input 
+              type="number" 
+              value={dailyLimit}
+              onChange={(e) => updateSettings({ dailyLimit: Number(e.target.value) })}
+              min="1"
+            />
+          </label>
+        </div>
 
-      <LimitControl 
-        dailyLimit={dailyLimit}
-        onLimitChange={setNewLimit}
-      />
+        <Counter 
+          count={count}
+          dailyLimit={dailyLimit}
+          onIncrement={addCigarette}
+          onDecrement={removeCigarette}
+        />
 
-      <Counter 
-        count={count}
-        dailyLimit={dailyLimit}
-        onIncrement={addCigarette}
-        onDecrement={removeCigarette}
-      />
+        <div className="stats-section">
+          <Calendar history={history} dailyLimit={dailyLimit} />
+          <Achievements achievements={achievements} />
+        </div>
 
-      <Calendar 
-        history={history}
-        dailyLimit={dailyLimit}
-      />
-
-      <Achievements 
-        achievements={achievements}
-      />
-
-      <div className="savings-section">
-        <h2>💰 Сэкономлено</h2>
-        <p>Вы сэкономили {getSavedCigarettes()} сигарет по сравнению с вашим лимитом!</p>
+        <div className="savings-card">
+          <h3>Ваша экономия</h3>
+          <p>Сэкономлено сигарет: {getSavedCigarettes()}</p>
+        </div>
       </div>
 
       <LogoutButton/>

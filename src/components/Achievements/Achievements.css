@@ -1,0 +1,19 @@
+.achievements-section {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  .achievements-list {
+    margin-top: 15px;
+  }
+  
+  .achievement {
+    background-color: #fff8e1;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    border-left: 4px solid #ffc107;
+  }

@@ -1,57 +1,17 @@
 import React from 'react';
+import { useAuth } from './hooks/useAuth';
+import AuthPage from './pages/AuthPage';
+import MainPage from './pages/MainPage';
 import './App.css';
-import Counter from './components/Counter/Counter';
-import LimitControl from './components/LimitControl/LimitControl';
-import Calendar from './components/Calendar/Calendar';
-import Achievements from './components/Achievements/Achievements';
-import { useSmokeTracker } from './hooks/useSmokeTracker';
 
 function App() {
-  const {
-    dailyLimit,
-    count,
-    history,
-    achievements,
-    addCigarette,
-    removeCigarette,
-    setNewLimit,
-    getSavedCigarettes
-  } = useSmokeTracker();
+  const { currentUser, loading } = useAuth();
 
-  return (
-    <div className="app">
-      <header>
-        <h1>🚬 Smoke Tracker</h1>
-        <p>Следи за привычкой и уменьшай потребление</p>
-      </header>
+  if (loading) {
+    return <div className="loading-screen">Загрузка...</div>;
+  }
 
-      <LimitControl 
-        dailyLimit={dailyLimit}
-        onLimitChange={setNewLimit}
-      />
-
-      <Counter 
-        count={count}
-        dailyLimit={dailyLimit}
-        onIncrement={addCigarette}
-        onDecrement={removeCigarette}
-      />
-
-      <Calendar 
-        history={history}
-        dailyLimit={dailyLimit}
-      />
-
-      <Achievements 
-        achievements={achievements}
-      />
-
-      <div className="savings">
-        <h2>💰 Сэкономлено</h2>
-        <p>Вы сэкономили {getSavedCigarettes()} сигарет по сравнению с вашим лимитом!</p>
-      </div>
-    </div>
-  );
+  return currentUser ? <MainPage /> : <AuthPage />;
 }
 
 export default App;

@@ -10,14 +10,16 @@ export const useSmokeTracker = (userId) => {
 
   // Инициализация данных при первом входе
   useEffect(() => {
-    if (!userId || loading || data) return;
-    
+    if (loading || !userId || data) return;
+
+    const today = new Date().toLocaleDateString();
     const initData = {
       count: 0,
       dailyLimit: 5,
-      history: {},
+      history: { [today]: 0 },
       achievements: [],
-      createdAt: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
+      isInitialized: true // Маркер инициализации
     };
     
     updateDoc(initData);

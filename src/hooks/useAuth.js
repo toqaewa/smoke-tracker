@@ -26,16 +26,19 @@ export function useAuth() {
     return createUserWithEmailAndPassword(auth, email, password);
   };
 
-  const logIn = (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
+  const logIn = async (email, password) => {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    sessionStorage.setItem('current_user', JSON.stringify(userCredential.user));
+    return userCredential.user;
   };
 
   const logInWithGoogle = () => {
     return signInWithPopup(auth, googleProvider);
   };
 
-  const logOut = () => {
-    return signOut(auth);
+  const logOut = async () => {
+    await signOut(auth);
+    sessionStorage.removeItem('current_user');
   };
 
   const loadUserData = async (userId) => {

@@ -14,7 +14,11 @@ export const useUserData = (userId) => {
 
     const userRef = doc(db, 'users', userId);
     const unsubscribe = onSnapshot(userRef, (docSnap) => {
-      setData(docSnap.exists() ? docSnap.data() : null);
+      if (docSnap.exists()) {
+        setData(docSnap.data());
+      } else {
+        setData(null); // Явно указываем что данных нет
+      }
       setLoading(false);
     });
 
@@ -22,8 +26,14 @@ export const useUserData = (userId) => {
   }, [userId]);
 
   const updateDoc = async (newData) => {
+    // 1. Обновляем Firestore
     await setDoc(doc(db, 'users', userId), newData, { merge: true });
-  };
+    
+    // 2. Локальное сохранение в LS
+    localStorage.setItem(`user_${userId}_data`, JSON.stringify({
+      ...JSON.parse(localStorage.getItem(`user_${userId}_data`) || '{}'),
+      ...newData
+    }))};
 
   return { data, loading, updateDoc };
 };

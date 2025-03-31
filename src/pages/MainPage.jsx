@@ -1,4 +1,5 @@
 import { useAuth } from '../hooks/useAuth';
+import { useSyncData } from '../hooks/useSyncData.js';
 import { useSmokeTracker } from '../hooks/useSmokeTracker';
 import Counter from '../components/Counter/Counter';
 import Calendar from '../components/Calendar/Calendar';
@@ -8,6 +9,7 @@ import './MainPage.css';
 
 export default function MainPage() {
   const { currentUser } = useAuth();
+  useSyncData(currentUser?.uid);
   const {
     count,
     dailyLimit,
@@ -21,7 +23,7 @@ export default function MainPage() {
   } = useSmokeTracker(currentUser?.uid);
 
   // Состояние загрузки
-  if (loading) {
+  if (loading || !history) {
     return <div className="loading">Загрузка данных...</div>;
   }
 
@@ -61,7 +63,7 @@ export default function MainPage() {
 
         <div className="savings-card">
           <h3>Ваша экономия</h3>
-          <p>Сэкономлено сигарет: {getSavedCigarettes()}</p>
+          <p>Сэкономлено денег: {(getSavedCigarettes()-count)*200} рублей</p>
         </div>
       </div>
 

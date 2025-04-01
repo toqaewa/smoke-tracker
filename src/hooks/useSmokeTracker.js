@@ -8,30 +8,33 @@ export const useSmokeTracker = (userId) => {
     updateDoc 
   } = useUserData(userId);
 
-  // Инициализация данных при первом входе
-  useEffect(() => {
-    if (loading || !userId || data) return;
+  // // Инициализация данных при первом входе
+  // useEffect(() => {
+  //   if (loading || !userId || data) return;
 
-    const today = new Date().toLocaleDateString();
-    const initData = {
-      count: 0,
-      dailyLimit: 5,
-      history: { [today]: 0 },
-      achievements: [],
-      lastUpdated: new Date().toISOString(),
-      isInitialized: true // Маркер инициализации
-    };
+  //   const today = new Date().toLocaleDateString();
+  //   const initData = {
+  //     count: 0,
+  //     dailyLimit: 5,
+  //     history: { [today]: 0 },
+  //     achievements: [],
+  //     lastUpdated: new Date().toISOString(),
+  //     isInitialized: true // Маркер инициализации
+  //   };
     
-    updateDoc(initData);
-  }, [userId, loading, data, updateDoc]);
+  //   updateDoc(initData);
+  // }, [userId, loading, data, updateDoc]);
 
   const addCigarette = async () => {
+    if (!userId) return;
+
     const today = new Date().toLocaleDateString();
     const newCount = (data?.count || 0) + 1;
     
     await updateDoc({
       count: newCount,
-      [`history.${today}`]: (data?.history[today] || 0) + 1
+      [`history.${today}`]: (data?.history[today] || 0) + 1,
+      lastUpdated: new Date().toISOString()
     });
   };
 
@@ -57,10 +60,10 @@ export const useSmokeTracker = (userId) => {
   };
 
   return {
-    count: data?.count || 0,
-    dailyLimit: data?.dailyLimit || 5,
-    history: data?.history || {},
-    achievements: data?.achievements || [],
+    count: data?.count,
+    dailyLimit: data?.dailyLimit,
+    history: data?.history,
+    achievements: data?.achievements,
     addCigarette,
     removeCigarette,
     updateSettings,

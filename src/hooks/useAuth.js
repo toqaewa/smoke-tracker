@@ -15,7 +15,12 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, user => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        localStorage.setItem('current_user', JSON.stringify(user));
+      } else {
+        localStorage.removeItem('current_user');
+      }
       setCurrentUser(user);
       setLoading(false);
     });
@@ -28,7 +33,7 @@ export function useAuth() {
 
   const logIn = async (email, password) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    sessionStorage.setItem('current_user', JSON.stringify(userCredential.user));
+    localStorage.setItem('current_user', JSON.stringify(userCredential.user));
     return userCredential.user;
   };
 
@@ -38,7 +43,7 @@ export function useAuth() {
 
   const logOut = async () => {
     await signOut(auth);
-    sessionStorage.removeItem('current_user');
+    localStorage.removeItem('current_user');
   };
 
   const loadUserData = async (userId) => {

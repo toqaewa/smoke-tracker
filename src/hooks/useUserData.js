@@ -3,7 +3,13 @@ import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export const useUserData = (userId) => {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(() => {
+    // здесь сразу инициализирую состояние из LocalStorage
+    if (!userId) return null;
+    const savedData = localStorage.getItem(`user_${userId}_data`);
+    return savedData ? JSON.parse(savedData) : null;
+  });
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -12,12 +18,22 @@ export const useUserData = (userId) => {
       return;
     }
 
+    // // проверочка локал стораджа при инициализации
+    // const savedData = localStorage.getItem(`user_${userId}_data`);
+    // if (savedData) {
+    //   setData(JSON.parse(savedData));
+    //   setLoading(false);
+    // }
+
     const userRef = doc(db, 'users', userId);
     const unsubscribe = onSnapshot(userRef, (docSnap) => {
       if (docSnap.exists()) {
-        setData(docSnap.data());
+        const firestoreData = docSnap.data();
+        setData(firestoreData);
+        localStorage.setItem(`user_${userId}_data`, JSON.stringify(firestoreData)); // как только получаю данные из Firestore - сохраняю в лс
       } else {
         setData(null); // Явно указываем что данных нет
+        localStorage.removeItem(`user_${userId}_data`); // может это все ломает?
       }
       setLoading(false);
     });
@@ -26,14 +42,17 @@ export const useUserData = (userId) => {
   }, [userId]);
 
   const updateDoc = async (newData) => {
-    // 1. Обновляем Firestore
-    await setDoc(doc(db, 'users', userId), newData, { merge: true });
+    const mergedData = { ...data, ...newData };
+    // оптимистичное обновление LocalStorage
+    localStorage.setItem(`user_${userId}_data`, JSON.stringify(mergedData));
+    setData(mergedData);
     
-    // 2. Локальное сохранение в LS
-    localStorage.setItem(`user_${userId}_data`, JSON.stringify({
-      ...JSON.parse(localStorage.getItem(`user_${userId}_data`) || '{}'),
-      ...newData
-    }))};
+    try {
+      await setDoc(doc(db, 'users', userId), mergedData, { merge: true });
+    } catch (error) {
+      console.error("Ошибка синхронизации с Firestore:", error);
+    }
+  };
 
   return { data, loading, updateDoc };
 };

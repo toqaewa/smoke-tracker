@@ -6,6 +6,7 @@ import Calendar from '../components/Calendar/Calendar';
 import Achievements from '../components/Achievements/Achievements';
 import LogoutButton from '../components/Auth/LogoutButton.jsx'
 import './MainPage.css';
+import { useEffect } from 'react';
 
 export default function MainPage() {
   const { currentUser } = useAuth();
@@ -21,6 +22,11 @@ export default function MainPage() {
     updateSettings,
     getSavedCigarettes
   } = useSmokeTracker(currentUser?.uid);
+
+  useEffect(() => {
+    console.log('Current data:', 
+      JSON.parse(localStorage.getItem(`user_${currentUser?.uid}_data`)));
+  }, [currentUser?.uid]);
 
   // Состояние загрузки
   if (loading || !history) {

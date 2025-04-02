@@ -3,12 +3,14 @@ import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export const useUserData = (userId) => {
-  const [data, setData] = useState(() => {
-    // здесь сразу инициализирую состояние из LocalStorage
-    if (!userId) return null;
-    const savedData = localStorage.getItem(`user_${userId}_data`);
-    return savedData ? JSON.parse(savedData) : null;
-  });
+  // const [data, setData] = useState(() => {
+  //   // здесь сразу инициализирую состояние из LocalStorage
+  //   if (!userId) return null;
+  //   const savedData = localStorage.getItem(`user_${userId}_data`);
+  //   return savedData ? JSON.parse(savedData) : null;
+  // });
+
+  const [data, setData] = useState(null);
 
   const [loading, setLoading] = useState(true);
 

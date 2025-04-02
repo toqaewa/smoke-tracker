@@ -60,10 +60,10 @@ export const useSmokeTracker = (userId) => {
   };
 
   return {
-    count: data?.count,
-    dailyLimit: data?.dailyLimit,
-    history: data?.history,
-    achievements: data?.achievements,
+    count: data?.count || 0,
+    dailyLimit: data?.dailyLimit || 5,
+    history: data?.history || [],
+    achievements: data?.achievements || [],
     addCigarette,
     removeCigarette,
     updateSettings,

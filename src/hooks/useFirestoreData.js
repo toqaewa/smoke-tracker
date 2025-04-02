@@ -22,11 +22,12 @@ export const useFirestoreData = (userId) => {
 
     const userRef = doc(db, 'users', userId);
     const unsubscribe = onSnapshot(userRef, (docSnap) => {
-      if (docSnap.exists()) {
-        setData(docSnap.data());
-      } else {
-        initUserData(userId);
+      if (!docSnap.exists()) {
+        return initUserData(userId);
       }
+      
+      const firestoreData = docSnap.data();
+      setData(firestoreData);
       setLoading(false);
     });
 

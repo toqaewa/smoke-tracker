@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useFirestoreData } from '../hooks/useFirestoreData';
+import { useSmokeTracker } from '../../hooks/useSmokeTracker';
 
 export default function Settings({ userId }) {
-  const { data, updateSettings } = useFirestoreData(userId);
+  const { data, updateSettings } = useSmokeTracker(userId);
   const [limit, setLimit] = useState(data?.settings.dailyLimit || 5);
   
   const handleSave = () => {

@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-// import { auth } from '../firebase';
 
 export const useSyncData = (userId) => {
   useEffect(() => {

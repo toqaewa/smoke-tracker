@@ -7,20 +7,23 @@ import Achievements from '../components/Achievements/Achievements';
 import LogoutButton from '../components/Auth/LogoutButton.jsx'
 import './MainPage.css';
 import { useEffect } from 'react';
+import Settings from '../components/Settings/Settings.jsx';
 
 export default function MainPage() {
-  const { currentUser } = useAuth();
+  const { currentUser, loading: authLoading } = useAuth();
   useSyncData(currentUser?.uid);
+
   const {
     count,
     dailyLimit,
     history,
     achievements,
-    loading,
+    loading: dataLoading,
+    error,
     addCigarette,
     removeCigarette,
     updateSettings,
-    getSavedCigarettes
+    getSavedCigarettes = () => 0
   } = useSmokeTracker(currentUser?.uid);
 
   useEffect(() => {
@@ -29,13 +32,23 @@ export default function MainPage() {
   }, [currentUser?.uid]);
 
   // Состояние загрузки
-  if (loading || !history) {
+  if (authLoading || dataLoading) {
     return <div className="loading">Загрузка данных...</div>;
+  }
+
+  // Обработка ошибок
+  if (error) {
+    return <div className="error">Ошибка: {error.message}</div>;
   }
 
   // Проверка авторизации
   if (!currentUser) {
     return <div className="auth-warning">Пожалуйста, войдите в систему</div>;
+  }
+
+  // Проверка инициализации данных
+  if (!history || typeof count === 'undefined') {
+    return <div className="loading">Инициализация данных...</div>;
   }
 
   return (
@@ -67,9 +80,10 @@ export default function MainPage() {
           <Achievements achievements={achievements} />
         </div>
 
-        <div className="savings-card">
-          <h3>Ваша экономия</h3>
-          <p>Сэкономлено денег: {(getSavedCigarettes()-count)*200} рублей</p>
+        <div className="savings-section">
+          <h2>💸 Ваша экономия</h2>
+          <p>Функция расчёта экономии в разработке</p>
+          {/* Позже заменить на рабочий вариант */}
         </div>
       </div>
 

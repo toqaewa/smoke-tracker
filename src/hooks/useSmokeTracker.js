@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { doc, onSnapshot, getDoc, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const DEFAULT_DATA = {
@@ -15,6 +15,18 @@ const DEFAULT_DATA = {
   achievements: [],
   isInitialized: true
 };
+
+const ACHIEVEMENTS_CONFIG = {
+  dayWithinLimit: {
+    condition: (count, dailyLimit) => count <= dailyLimit,
+    name: 'day_within_limit'
+  },
+  weekNonSmoker: {
+    condition: (history, dailyLimit) => 
+      Object.values(history).reduce((sum, val) => sum + val, 0) === 0,
+    name: 'week_non_smoker'
+  }
+}
 
 export const useSmokeTracker = (userId) => {
   const [data, setData] = useState(() => {
@@ -81,10 +93,8 @@ export const useSmokeTracker = (userId) => {
     if (!data) return; // оберег от undefined
 
     try {
-      // Получаем текущую дату в нужном формате
       const today = new Date().toISOString().split('T')[0];
       
-      // Создаём безопасные значения по умолчанию
       const currentStats = data?.stats || {
         currentCount: 0,
         lastUpdated: new Date().toISOString()
@@ -92,15 +102,12 @@ export const useSmokeTracker = (userId) => {
       
       const currentHistory = data?.history || {};
       
-      // Проверяем, наступил ли новый день
       const lastDate = currentStats.lastUpdated.split('T')[0];
       const isNewDay = lastDate !== today;
       
-      // Рассчитываем новые значения
       const newCount = isNewDay ? 1 : (currentStats.currentCount + 1);
       const todayCount = (isNewDay ? 0 : (currentHistory[today] || 0)) + 1;
       
-      // Подготавливаем обновления
       const updates = {
         stats: {
           currentCount: newCount,
@@ -111,19 +118,25 @@ export const useSmokeTracker = (userId) => {
           [today]: todayCount
         }
       };
+
+      const newAchievements = Object.values(ACHIEVEMENTS_CONFIG)
+        .filter(({ id, check }) => 
+          !data.achievements?.includes(id) && check(newCount, data, isNewDay))
+        .map(({ id }) => id);
+
+      if (newAchievements.length > 0) {
+        updates.achievements = [...(data.achievements || []), ...newAchievements];
+      }
       
-      // Оптимистичное обновление UI
+      // Оптимистичное обновление
       setData(prev => ({
         ...prev,
         ...updates
       }));
-      
-      // Обновление в Firestore
       await updateDoc(doc(db, 'users', userId), updates);
       
     } catch (error) {
       console.error("Ошибка при добавлении сигареты:", error);
-      // Можно добавить восстановление состояния или уведомление пользователя
     }
   };
 
@@ -145,13 +158,33 @@ export const useSmokeTracker = (userId) => {
     });
   };
 
-  const checkAchievements = async (currentCount) => {
-    if (currentCount <= data.settings.dailyLimit) {
-      await updateDoc(doc(db, 'users', userId), {
-        achievements: arrayUnion('day_within_limit'),
-      });
-    }
-  };
+  // const checkAchievements = async (newData) => {
+  //   try {
+  //     const { currentCount } = newData.stats;
+  //     const { dailyLimit } = newData.settings;
+  //     const { history } = newData;
+      
+  //     const newAchievements = [];
+      
+  //     // Проверяем условия достижений
+  //     if (ACHIEVEMENTS_CONFIG.dayWithinLimit.condition(currentCount, dailyLimit)) {
+  //       newAchievements.push(ACHIEVEMENTS_CONFIG.dayWithinLimit.name);
+  //     }
+      
+  //     if (history && ACHIEVEMENTS_CONFIG.weekNonSmoker.condition(history, dailyLimit)) {
+  //       newAchievements.push(ACHIEVEMENTS_CONFIG.weekNonSmoker.name);
+  //     }
+      
+  //     // Если есть новые достижения - обновляем
+  //     if (newAchievements.length > 0) {
+  //       await updateDoc(doc(db, 'users', userId), {
+  //         achievements: arrayUnion(...newAchievements)
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error('Ошибка проверки достижений:', error);
+  //   }
+  // };
 
   const getSavedCigarettes = () => {
     if (!data?.history) return 0;
@@ -193,6 +226,7 @@ export const useSmokeTracker = (userId) => {
     history: data?.history || {},
     achievements: data?.achievements || [],
     loading,
+    error,
     addCigarette: data && userId ? addCigarette : null,
     removeCigarette,
     updateSettings,

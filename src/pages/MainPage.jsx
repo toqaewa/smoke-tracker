@@ -7,7 +7,6 @@ import Achievements from '../components/Achievements/Achievements';
 import LogoutButton from '../components/Auth/LogoutButton.jsx'
 import './MainPage.css';
 import { useEffect } from 'react';
-import Settings from '../components/Settings/Settings.jsx';
 
 export default function MainPage() {
   const { currentUser, loading: authLoading } = useAuth();
@@ -23,7 +22,7 @@ export default function MainPage() {
     addCigarette,
     removeCigarette,
     updateSettings,
-    getSavedCigarettes = () => 0
+    // getSavedCigarettes = () => 0
   } = useSmokeTracker(currentUser?.uid);
 
   useEffect(() => {
